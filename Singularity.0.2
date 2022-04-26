@@ -33,11 +33,15 @@ Version 0.2
     /opt/build/LICENSE     /usr/local/share/
 
 %post
-    ## Download build prerequisites
+    ## Install  runtime requirements
     export DEBIAN_FRONTEND=noninteractive
     apt-get update
     apt-get install -y --no-install-recommends libgomp1
 
 %runscript
-    exec lja "$@"
-
+if [ -x /usr/local/bin/$SINGULARITY_NAME ]; then
+    exec $SINGULARITY_NAME "$@"
+else
+  /bin/echo -e "This Singularity image cannot provide a single entrypoint. Please use \"singularity exec $SINGULARITY_NAME <cmd>\", where <cmd> is one of the following:\n"
+  exec ls /usr/local/bin
+fi
