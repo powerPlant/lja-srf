@@ -1,0 +1,43 @@
+Bootstrap: docker
+From: ubuntu:focal
+Stage: build
+
+%post
+    ## Download build prerequisites
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update
+    apt-get install -y --no-install-recommends make build-essential cmake curl zlib1g-dev ca-certificates
+
+    ## Build
+    RELEASE=https://github.com/AntonBankevich/LJA/archive/refs/tags/untagged-c539e6b1159980742576.tar.gz
+    PREFIX=/opt/build
+    mkdir -p $PREFIX
+    curl -L $RELEASE | tar -xz --strip-components=1 -C $PREFIX
+    cd $PREFIX
+    cmake .
+    make
+
+Bootstrap: docker
+From: ubuntu:focal
+Stage: final
+
+%labels
+Maintainer ben.warren@plantandfood.co.nz
+Version 0.2
+
+%files from build
+    /opt/build/bin/*       /usr/local/bin/
+    /opt/build/lib/*       /usr/local/lib/
+    /opt/build/docs        /usr/local/share/
+    /opt/build/README.md   /usr/local/share/
+    /opt/build/LICENSE     /usr/local/share/
+
+%post
+    ## Download build prerequisites
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update
+    apt-get install -y --no-install-recommends libgomp1
+
+%runscript
+    exec lja "$@"
+
